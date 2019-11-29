@@ -50,7 +50,7 @@ void printmenues(int menueid);
 int main(int argc, char const *argv[])
 {
 
-	const int lagergroese = 200;
+	const int lagergroese = 200; /* variable size requiers memory alloc */
 	struct Artikel lager[lagergroese];
 	int next_free_id = 0;
 	int optionpicked;
