@@ -7,37 +7,33 @@ struct Artikel
   int anzahl;
 };
 
-void get_data_from_file(struct Artikel lager[],int size){
+void get_data_from_file(){
   FILE *fptr;
   if ((fptr = fopen("./test.txt","rb")) == NULL){
     printf("Error! opening file");
     // Program exits if the file pointer returns NULL.
     exit(1);
   }
-
-    fread(&lager, sizeof(struct Artikel), 5, fptr); 
-    //printf("n1: %d\tn2: %d\tn3: %d", num.n1, num.n2, num.n3);
-    printf("reading\n");
-    for (int i = 0; i < size; ++i)
-    {     
-          printf("reading lager[%i]\n",i );
-          printf("%s\n",lager[0].id);
-          //printf("the srtucts are id: %i name: %s anzahl: %i\n",lager[i].id,lager[i].name,lager[i].anzahl );
-
-    }
-  
+  struct Artikel newartikel;
+  struct Artikel lager[3];
+  while(fread(&newartikel, sizeof(struct Artikel), 1, fptr)){ 
+        printf ("reading");
+        printf("read id : %i \n",newartikel.id ); 
+  }
   fclose(fptr); 
+  for (int i = 0; i < 2; ++i)
+  {
+    fread(&lager[i],sizeof(struct Artikel),1,fptr);
+    printf("here is the id in array: %i\n",lager[i].id );
+  }
+  fclose(fptr);
 }
 
-int main()
-{
-  int n;
-  int nextfreeid = 0;
-  struct Artikel newartikel;
-  struct Artikel lager[5];
-  FILE *fptr;
-  /*print */
-  if ((fptr = fopen("./test.txt","wb")) == NULL){
+void write_data(){
+    FILE *fptr;
+    int n;
+    int nextfreeid = 0;
+    if ((fptr = fopen("./test.txt","wb")) == NULL){
     printf("Error! opening file");
     // Program exits if the file pointer returns NULL.
     exit(1);
@@ -50,7 +46,15 @@ int main()
     printf("writing\n");
   }
   fclose(fptr); 
-  get_data_from_file(lager,5);
+}
+
+int main()
+{
+
+  struct Artikel lager[5];
+  /*print */
+  write_data();
+  get_data_from_file(5);
 
   return 0;
 }
