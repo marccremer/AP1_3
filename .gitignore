@@ -1,3 +1,4 @@
-ap_3.sublime-project
+*.sublime-project
 *.pdf
-ap_3.sublime-workspace
+*.sublime-workspace
+bin/*
