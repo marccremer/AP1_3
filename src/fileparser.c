@@ -3,7 +3,7 @@
 struct Artikel
 {
   int id;
-  char name[10];
+  char name[12];
   int anzahl;
 };
 
@@ -16,20 +16,13 @@ void read_lager_from_file(struct Artikel lager[],int size){
   }
   struct Artikel newartikel;
   int count = 0;
-  while(fread(&lager[2], sizeof(struct Artikel), 1, fptr)){ 
-        printf ("reading");
-        printf("read id : %i \n",newartikel.id ); 
-        count++;
-  }
-  fclose(fptr); 
 
-    fread(&lager,sizeof(struct Artikel),3,fptr);
-    for (int i = 0; i < 3; ++i)
-    {
-      printf("here is the id in array[%i]: %i\n",i,lager[i].id );
-    }
-    
-  fclose(fptr);
+
+  if(fptr != NULL){
+    for (int i = 0; i < 3; ++i){
+    fread(lager,sizeof(struct Artikel),size,fptr);
+    fclose(fptr);}
+  }
 }
 
 void write_lager_to_file(){
@@ -46,14 +39,15 @@ void write_lager_to_file(){
   for (int i = 0; i < 3; ++i)
   {
     lagers[i].id = i+1;
-    printf("creating buffer with id: %i\n",i+1 );
+    printf("creating buffer with id: %i\n",lagers[i].id);
   }
 
+
    nextfreeid++;
-    fwrite(&lagers, sizeof(struct Artikel), 3, fptr); 
+    fwrite(lagers, sizeof(struct Artikel), 3, fptr);
     printf("writing with id:%i\n",lagers[0].id);
-  
-  fclose(fptr); 
+
+  fclose(fptr);
 }
 
 int main()
@@ -63,11 +57,15 @@ int main()
   /* careful with edianess */
   write_lager_to_file();
   struct Artikel lager[3];
-
+  printf("reading\n");
   read_lager_from_file(lager,3);
+  for (int i = 0; i < 3; ++i)
+  {
+    printf("lager[%i] mit id:%i\n", i,lager[i].id);
+  }
 
   return 0;
 }
 
 
-  
+
