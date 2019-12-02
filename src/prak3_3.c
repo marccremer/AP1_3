@@ -31,7 +31,12 @@ die Bibliotheksfunktion int strcmp(const char *s1, const char *s2) .
 kein make und keine separate Übersetzung verwenden.
 Marc Cremer 2019 */
 
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <sys/ioctl.h>
+
+
 
  struct Artikel {
 	int id;
@@ -39,13 +44,17 @@ Marc Cremer 2019 */
 	int anzahl;
 };
 
-struct Artikel createartikel(int id);
+void write_lager_to_file();
+void read_lager_from_file(struct Artikel lager[],int size);
+struct Artikel createartikel(int id,char *str) ;
 void artikelhinzufuegen(int anzahl,char name[]);
 void artikelentnehmen(int id);
 int findeartikelid(char name[]);
 int anzahlartikel(int id);
-void printlagertabelle();
+void printlagertabelle(struct Artikel *art);
 void printmenues(int menueid);
+void clearscreen();
+int readoption();
 
 int main(int argc, char const *argv[])
 {
@@ -53,62 +62,92 @@ int main(int argc, char const *argv[])
 	const int lagergroese = 200; /* variable size requiers memory alloc */
 	struct Artikel lager[lagergroese];
 	int next_free_id = 0;
+	int saturation = 0;
 	int optionpicked;
 	int finished = 0;
+	char newname[10];
+	int newanzahl;
+	int submenu = 0;
+	char lasterror[60] = "";
+	printf("Willkommen zum Lagersystem Cremer\n");
 	while (finished != 1){
-		int submenu = 0;
-		printf("Willkommen zum Lagersystem Cremer\n");
-		printmenues(1);
-		fflush(stdin);
-		scanf("%i",&optionpicked);
-		switch(optionpicked){
-			case 1:
-				/*submenu Artikelverwaltung*/
-				printmenues(2);
-				submenu = 1;
-				scanf("%i",&optionpicked);
-				break;
-			case 2:
-				/*Lager tabelle*/
-				printf("debug1\n");
-				break;
-			case 3:
-				/*Programm beenden*/
-				printf("debug2\n");
-				finished =1;
-				break;
-			default:
-				printf("Das habe ich leider nicht verstanden\n\n");
-				break;
-		}
-		if (submenu == 1)
-		{
+		//clearscreen();
+		printf("%s\n",lasterror );
+		strcpy(lasterror,"");
+		if (submenu == 0){
+			printmenues(1);
+			fflush(stdin);
+			scanf("%i",&optionpicked);
+			switch(optionpicked){
+				case 1:
+					/*submenu Artikelverwaltung*/	
+					submenu = 1;
+					break;
+				case 2:
+					/*Lager tabelle*/
+					printf("|  id|      name|Anzahl|\n");				
+					for (int i = 0; i < saturation; ++i)
+						{
+							printlagertabelle(&lager[i]);
+						}
+					break;
+				case 3:
+					/*Programm beenden*/
+					printf("Auf Wiedersehen\n");
+					finished =1;
+					break;
+				default:
+					strcpy(lasterror,"->>>>>Tut mir leid das habe ich leider nicht verstanden\n");
+					break;
+				}
+		}else{
+			printmenues(2);
+			optionpicked = readoption();
+			printf("debub66\n");
 			switch(optionpicked){
 				case 1:
 					printf("debug3\n");
+					break;
 				case 2:
 					printf("debug4\n");
+					break;
 				case 3:
 					/*Artikel hinzufügen*/
-					if (next_free_id > lagergroese )
+					if (saturation >= lagergroese )
 					{
 						printf("Leider ist das Lager voll\n");
 						break;
 					}
-					lager[next_free_id] = createartikel(next_free_id);
-					printf("Artikel erstellst mit id:%i\n",lager[next_free_id].id );
+					printf("Name des neuen Artikels?:");
+					scanf("%s",&newname);
+					printf("\n");
+					printf("Wieviel kommen ins lager?\n");
+					scanf("%i",&newanzahl);
+
+					lager[next_free_id] = createartikel(next_free_id,newname);
+					printf("Artikel erstellst mit id:%i name:%s anzahl:%i\n\n",lager[next_free_id].id,lager[next_free_id].name,lager[next_free_id].anzahl);
 					next_free_id+=1;
+					saturation+=1;
 				case 4:
 					submenu = 0;
 					break;
 				default:
-					printf("Das habe ich leider nicht verstanden\n");
+					strcpy(lasterror,"->>>>>Tut mir leid das habe ich leider nicht verstanden\n");
+					break;
 			}
 		}
-
 		
 	}
 	return 0;
+}
+
+void clearscreen(){
+	struct winsize w;
+    ioctl(0, TIOCGWINSZ, &w);
+    for (int i = 0; i < w.ws_row; ++i)
+    {
+    	printf("\n");
+    }
 }
 
 void printmenues(int menueid){
@@ -135,7 +174,61 @@ void printmenues(int menueid){
 	}
 }
 
-struct Artikel createartikel(int id){
-	struct Artikel newartikel = { id,"marc",0};
+struct Artikel createartikel(int id,char *str){
+	struct Artikel newartikel;
+	newartikel.id = id;
+	strcpy(newartikel.name,str);
+	newartikel.anzahl = 0;
 	return newartikel;
+}
+
+int readoption(){
+	int option;
+	fflush(stdin);
+	scanf("%i",&option);
+	return option;
+}
+
+void printlagertabelle(struct Artikel *art){
+	printf("|  %*i|  %*s|  %*i|\n",2,art->id,8,art->name,4,art->anzahl );
+}
+
+void read_lager_from_file(struct Artikel lager[],int size){
+  FILE *fptr;
+  if ((fptr = fopen("./test.txt","rb")) == NULL){
+    printf("Error! opening file");
+    // Program exits if the file pointer returns NULL.
+    exit(1);
+  }
+  struct Artikel newartikel;
+  while(fread(&newartikel, sizeof(struct Artikel), 1, fptr)){ 
+        printf ("reading");
+        printf("read id : %i \n",newartikel.id ); 
+  }
+  fclose(fptr); 
+  for (int i = 0; i < 2; ++i)
+  {
+    fread(&lager[i],sizeof(struct Artikel),1,fptr);
+    printf("here is the id in array: %i\n",lager[i].id );
+  }
+  fclose(fptr);
+}
+
+void write_lager_to_file(){
+    FILE *fptr;
+    int n;
+    int nextfreeid = 0;
+    if ((fptr = fopen("./test.txt","wb")) == NULL){
+    printf("Error! opening file");
+    // Program exits if the file pointer returns NULL.
+    exit(1);
+  }
+  for(n = 0; n < 5; ++n)
+  {
+   struct Artikel  newartikel = { nextfreeid,"marc",n};
+   nextfreeid++;
+    fwrite(&newartikel, sizeof(struct Artikel), 1, fptr); 
+    printf("writing\n");
+  }
+  fclose(fptr); 
 }
