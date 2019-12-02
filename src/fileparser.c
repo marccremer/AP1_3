@@ -19,10 +19,10 @@ void read_lager_from_file(struct Artikel lager[],int size){
 
 
   if(fptr != NULL){
-    for (int i = 0; i < 3; ++i){
+    
     fread(lager,sizeof(struct Artikel),size,fptr);
     fclose(fptr);}
-  }
+  
 }
 
 void write_lager_to_file(){
@@ -39,13 +39,13 @@ void write_lager_to_file(){
   for (int i = 0; i < 3; ++i)
   {
     lagers[i].id = i+1;
+    lagers[i].anzahl = i+2;
     printf("creating buffer with id: %i\n",lagers[i].id);
   }
 
 
    nextfreeid++;
     fwrite(lagers, sizeof(struct Artikel), 3, fptr);
-    printf("writing with id:%i\n",lagers[0].id);
 
   fclose(fptr);
 }
