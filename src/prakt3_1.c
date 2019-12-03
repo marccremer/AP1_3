@@ -34,26 +34,23 @@ int main(int argc, char const *argv[])
 	char name[40];
 	char csuche;
 	printf("Bitte Namen eingeben:");
-	scanf("%s",&name[0]);
+	scanf("%s",name);
 	printf("\n");
 	char answer;
 	int notfinished = 0;
 	int runs = 0;
 	while(notfinished == 0){
-		printf("Möchtest Du nach einem Buchstaben in Isabella suchen (j / n)?:\0");
+		printf("Möchtest Du nach einem Buchstaben in \"%s\" suchen (j / n)?:\0",name);
 		fflush(NULL);
 		scanf(" %c",&answer);
 		fflush(NULL);
-		//fflush(stdout);
 		printf("\n");
 		switch(answer){
 			case 'j':
 				printf("Bitte Buchstaben eingeben:\0");
 				scanf(" %c",&csuche);
 				fflush(NULL);
-				//fflush(stdin);
 				printf("Der Buchstabe %c kommt %i-mal vor.\n",csuche,sucheZeichen(name,csuche));
-				//notfinished = 1;
 				break;
 			case 'n':
 				printf("Auf Wiedersehen!\n");
@@ -64,17 +61,14 @@ int main(int argc, char const *argv[])
 			break;
 		}
 	}
-
 return 0;
 }
 
 int sucheZeichen(const char str[], char c){
-	//int length = strlen(str);
 	int foundchars = 0;
 	for(int i=0; str[i] != '\0'; i++){
 		if (str[i] == c )
 		{
-			//printf("found\n");
 			foundchars += 1;
 		}
 	}

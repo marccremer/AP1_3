@@ -1,0 +1,28 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	    "build_systems":
+    [
+        {
+        "name":"AP1 C Build",
+	    "file_patterns":"[*.c]",
+	    "cancel": {"kill": true},
+	    "working_dir":"${project_path}/src",
+	    "shell_cmd": "gcc $file_name -o ../bin/${file_base_name}",
+	    "variants": [
+        {
+            "name": "single_and_run",
+            "shell_cmd": "gcc $file_name -o ../bin/${file_base_name}  && urxvt  --hold -e ../bin/${file_base_name}"
+        },
+        {
+            "name": "compile all",
+            "cmd":"./compile.sh"
+        }
+    ]
+}
+    ]
+}

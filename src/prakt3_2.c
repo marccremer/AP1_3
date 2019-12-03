@@ -26,16 +26,13 @@ int main(int argc, char const *argv[])
 		fflush(NULL);
 		scanf(" %c",&answer);
 		fflush(NULL);
-		//fflush(stdout);
 		printf("\n");
 		switch(answer){
 			case 'j':
 				printf("Bitte Buchstaben eingeben:\0");
 				scanf(" %c",&csuche);
 				fflush(NULL);
-				//fflush(stdin);
 				printf("Der Buchstabe %c kommt %i-mal vor.\n",csuche,sucheZeichen(name,csuche));
-				//notfinished = 1;
 				break;
 			case 'n':
 				printf("Auf Wiedersehen!\n");
@@ -46,6 +43,5 @@ int main(int argc, char const *argv[])
 			break;
 		}
 	}
-
 return 0;
 }

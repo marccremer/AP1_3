@@ -44,12 +44,15 @@ Marc Cremer 2019 */
 	int anzahl;
 };
 
-void write_lager_to_file();
+
+
+void write_lager_to_file(struct Artikel lager[],int size);
 void read_lager_from_file(struct Artikel lager[],int size);
 struct Artikel createartikel(int id,char *str) ;
 void artikelhinzufuegen(int anzahl,char name[]);
 void artikelentnehmen(int id);
-int findeartikelid(char name[]);
+int artikel_exists(char name[],struct Artikel lagere[],int size);
+int findeartikelid(char name[],struct Artikel lagerf[],int size);
 int anzahlartikel(int id);
 void printlagertabelle(struct Artikel *art);
 void printmenues(int menueid);
@@ -60,7 +63,7 @@ int main(int argc, char const *argv[])
 {
 
 	const int lagergroese = 200; /* variable size requiers memory alloc */
-	struct Artikel lager[lagergroese];
+	struct Artikel lager[lagergroese] = {0};
 	int next_free_id = 0;
 	int saturation = 0;
 	int optionpicked;
@@ -69,6 +72,7 @@ int main(int argc, char const *argv[])
 	int newanzahl;
 	int submenu = 0;
 	char lasterror[60] = "";
+
 	printf("Willkommen zum Lagersystem Cremer\n");
 	while (finished != 1){
 		//clearscreen();
@@ -93,6 +97,7 @@ int main(int argc, char const *argv[])
 					break;
 				case 3:
 					/*Programm beenden*/
+					write_lager_to_file(lager,lagergroese);
 					printf("Auf Wiedersehen\n");
 					finished =1;
 					break;
@@ -105,10 +110,13 @@ int main(int argc, char const *argv[])
 			optionpicked = readoption();
 			printf("debub66\n");
 			switch(optionpicked){
-				case 1:
-					printf("debug3\n");
+				case 1: //suchen
+					printf("Wie heist der Artikel den sie suchen:");
+					fflush(NULL);
+					scanf("%s",newname);
+
 					break;
-				case 2:
+				case 2: //entnehmen
 					printf("debug4\n");
 					break;
 				case 3:
@@ -119,11 +127,14 @@ int main(int argc, char const *argv[])
 						break;
 					}
 					printf("Name des neuen Artikels?:");
-					scanf("%s",&newname);
+					scanf("%s",newname);
 					printf("\n");
 					printf("Wieviel kommen ins lager?\n");
 					scanf("%i",&newanzahl);
-
+					if (findeartikelid >= 0)
+					{
+						printf("Der Artikel:%s  wurde erstellt\n", newname);
+					}
 					lager[next_free_id] = createartikel(next_free_id,newname);
 					printf("Artikel erstellst mit id:%i name:%s anzahl:%i\n\n",lager[next_free_id].id,lager[next_free_id].name,lager[next_free_id].anzahl);
 					next_free_id+=1;
@@ -194,41 +205,64 @@ void printlagertabelle(struct Artikel *art){
 }
 
 void read_lager_from_file(struct Artikel lager[],int size){
-  FILE *fptr;
-  if ((fptr = fopen("./test.txt","rb")) == NULL){
+  FILE *fptr; //open a file buffer
+  if ((fptr = fopen("./lager.bin","rb")) == NULL){
     printf("Error! opening file");
     // Program exits if the file pointer returns NULL.
     exit(1);
   }
   struct Artikel newartikel;
-  while(fread(&newartikel, sizeof(struct Artikel), 1, fptr)){ 
-        printf ("reading");
-        printf("read id : %i \n",newartikel.id ); 
-  }
-  fclose(fptr); 
-  for (int i = 0; i < 2; ++i)
-  {
-    fread(&lager[i],sizeof(struct Artikel),1,fptr);
-    printf("here is the id in array: %i\n",lager[i].id );
-  }
-  fclose(fptr);
+  int count = 0;
+
+
+  if(fptr != NULL){
+    
+    fread(lager,sizeof(struct Artikel),size,fptr);
+    fclose(fptr);}
+  
 }
 
-void write_lager_to_file(){
-    FILE *fptr;
+void write_lager_to_file(struct Artikel lagerw[],int size){
+    FILE *fptr; //open a file buffer
     int n;
-    int nextfreeid = 0;
-    if ((fptr = fopen("./test.txt","wb")) == NULL){
+    if ((fptr = fopen("./lager.bin","wb")) == NULL){
     printf("Error! opening file");
     // Program exits if the file pointer returns NULL.
     exit(1);
   }
-  for(n = 0; n < 5; ++n)
-  {
-   struct Artikel  newartikel = { nextfreeid,"marc",n};
-   nextfreeid++;
-    fwrite(&newartikel, sizeof(struct Artikel), 1, fptr); 
-    printf("writing\n");
-  }
-  fclose(fptr); 
+
+    fwrite(lagerw, sizeof(struct Artikel), size, fptr);
+
+  fclose(fptr);
+}
+
+int artikel_exists(char name[],struct Artikel lagere[],int size){
+	int returnvalue = 0;
+	for (int i = 0; i < size; ++i)
+	{
+		if(strcmp (lagere[i].name,name) == 0)
+			returnvalue = 1;
+	}
+	return returnvalue;
+}
+
+void clearstructin(struct Artikel lagerc[],int pos){
+	lagerc[pos].id = 0;
+	lagerc[pos].name[0] = '\0';
+	lagerc[pos].anzahl = 0;
+}
+
+int findeartikelid(char name[],struct Artikel lagerf[],int size){
+	int returnvalue;
+	for (int i = 0; i < size; ++i)
+	{
+			if(strcmp (lagerf[i].name,name) == 0){
+				returnvalue = i;
+				break;
+			}else
+			{returnvalue = -1;
+			}
+	}
+	return returnvalue;
+
 }
