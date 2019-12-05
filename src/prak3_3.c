@@ -46,36 +46,51 @@ Marc Cremer 2019 */
 
 
 
-void write_lager_to_file(struct Artikel lager[],int size);
-void read_lager_from_file(struct Artikel lager[],int size);
-struct Artikel createartikel(int id,char *str) ;
-void artikelhinzufuegen(int anzahl,char name[]);
-void artikelentnehmen(int id);
-int artikel_exists(char name[],struct Artikel lagere[],int size);
-int findeartikelid(char name[],struct Artikel lagerf[],int size);
-int anzahlartikel(int id);
-void printlagertabelle(struct Artikel art);
-void printmenues(int menueid);
-void clearscreen();
-int readoption();
+
+struct Artikel createartikel(int id,char *str) ;		//returns a Artikel struct with anzahl 0
+void artikelentnehmen(int id);							//reduces anzahl by 1 for Artikel with id "id"
+int artikel_exists(char name[],struct Artikel lagere[],int size);	//checks if the Artikel mit name "name" exists in "lagere"
+int findeartikelid(char name[],struct Artikel lagerf[],int size);	// returns the id  of Artikel with "name" or -1 if the article doesnt exists 
+int anzahlartikel(int id);									//returns the anzahl of artikel mit id "id"
+void clearstructin(struct Artikel lagerc[],int pos);	//sets a struct in lager to 0 in each field
+int artikelindex(int id,struct Artikel lager[],int saturation); //returns the index of the Artikel with id "id"
+
+void printlagertabelle(struct Artikel art);					//print the lagertable formated
+void printmenues(int menueid);								//print a selection of menues
+void clearscreen();										//prints enough newline chars to clear the console
+int readoption();										//reads the input for the menues
+
+int loadsaturation();									//loads the number of diffrent Artikels
+void savesaturation(int sat);							//saves the number of diffrent Artikels
+void write_lager_to_file(struct Artikel lager[],int size); //write the array to a binfile
+void read_lager_from_file(struct Artikel lager[],int size); //load data from a binfile into the array
 
 int main(int argc, char const *argv[])
 {
 
-	const int lagergroese = 200; /* variable size requiers memory alloc */
+	const int lagergroese = 200; /* variable size requires memory alloc */
 	struct Artikel lager[lagergroese] ;
-	int next_free_id = 0;
-	int saturation = 0;
+	int saturation = loadsaturation();
+	int next_free_id = saturation-1;
 	int optionpicked;
 	int finished = 0;
 	char newname[10];
 	int newanzahl;
+	int newid;
 	int submenu = 0;
 	char lasterror[60] = "";
+	char spalteid[3] = "id";
+	char spalteArtikelname[12] = "Artikelname";
+	char spalteAnzahl[] = "Anzahl";
 
 	printf("Willkommen zum Lagersystem Cremer\n");
 	//load from file
 	read_lager_from_file(lager,lagergroese);
+	//read staturation
+	for (int i = saturation; i < lagergroese; ++i)
+	{
+		clearstructin(lager,i);
+	}
 
 	while (finished != 1){
 		//clearscreen();
@@ -92,17 +107,18 @@ int main(int argc, char const *argv[])
 					break;
 				case 2:
 					/*Lager tabelle*/
-					printf("|  id|      name|Anzahl|\n");				
+
+					printf("|%4s|%13s|%6s|\n",spalteid,spalteArtikelname,spalteAnzahl);				
 					for (int i = 0; i < saturation; ++i)
 						{
 							printlagertabelle(lager[i]);
-							printf("lager[%i] id:%i\n",i,lager[i].id );
 						}
 					break;
 				case 3:
 					/*Programm beenden*/
 					write_lager_to_file(lager,lagergroese);
-					printf("Auf Wiedersehen\n");
+					savesaturation(saturation);
+					printf("Auf Wiedersehen sat:%i\n",saturation);
 					finished =1;
 					break;
 				default:
@@ -118,10 +134,25 @@ int main(int argc, char const *argv[])
 					printf("Wie heist der Artikel den sie suchen:");
 					fflush(NULL);
 					scanf("%s",newname);
-
 					break;
 				case 2: //entnehmen
-					printf("debug4\n");
+					printf("Name des Artikels?:");
+					fflush(NULL);
+					scanf("%s",newname);
+					printf("\n");
+					printf("Wieviel verlassen das lager?\n");
+					fflush(NULL);
+					scanf("%i",&newanzahl);
+					newid = findeartikelid(newname,lager,saturation);
+					if (newid < 0)
+					{
+						printf("Dieser Artikel existiert leider nicht\n" );
+					}else{
+						if (lager[ artikelindex(newid,lager,saturation) ].anzahl == 0 )
+						{
+							printf("0 artikel take\n");
+						}
+					}
 					break;
 				case 3:
 					/*Artikel hinzufügen*/
@@ -131,18 +162,26 @@ int main(int argc, char const *argv[])
 						break;
 					}
 					printf("Name des neuen Artikels?:");
+					fflush(NULL);
 					scanf("%s",newname);
 					printf("\n");
 					printf("Wieviel kommen ins lager?\n");
+					fflush(NULL);
 					scanf("%i",&newanzahl);
-					if (findeartikelid >= 0)
+					newid = findeartikelid(newname,lager,saturation) ;
+					if (newid < 0) //komplett neuer Aritkel
 					{
-						printf("Der Artikel:%s  wurde erstellt\n", newname);
+						lager[next_free_id] = createartikel(next_free_id,newname);
+						lager[next_free_id].anzahl = newanzahl;
+						next_free_id++ ;
+						printf("Artikel erstellst mit id:%i name:%s anzahl:%i\n\n",lager[next_free_id].id,lager[next_free_id].name,lager[next_free_id].anzahl);
+						next_free_id++;
+						saturation++;
+					}else{
+						lager[newid].anzahl += newanzahl;
+						printf("Artikel hinzufügt\nNeue Anzahl an \"%s\": %i Stück\n",newname,lager[newid].anzahl);
 					}
-					lager[next_free_id] = createartikel(next_free_id,newname);
-					printf("Artikel erstellst mit id:%i name:%s anzahl:%i\n\n",lager[next_free_id].id,lager[next_free_id].name,lager[next_free_id].anzahl);
-					next_free_id+=1;
-					saturation+=1;
+					break;
 				case 4:
 					submenu = 0;
 					break;
@@ -156,13 +195,67 @@ int main(int argc, char const *argv[])
 	return 0;
 }
 
-void clearscreen(){
-	struct winsize w;
-    ioctl(0, TIOCGWINSZ, &w);
-    for (int i = 0; i < w.ws_row; ++i)
-    {
-    	printf("\n");
-    }
+struct Artikel createartikel(int id,char *str){
+	struct Artikel newartikel;
+	newartikel.id = id;
+	strcpy(newartikel.name,str);
+	newartikel.anzahl = 0;
+	return newartikel;
+}
+
+void artikelentnehmen(int id){
+	/*TODO */
+}
+
+int artikel_exists(char name[],struct Artikel lagere[],int size){
+	int returnvalue = 0;
+	for (int i = 0; i < size; ++i)
+	{
+		if(strcmp (lagere[i].name,name) == 0)
+			returnvalue = 1;
+	}
+	return returnvalue;
+}
+
+int findeartikelid(char name[],struct Artikel lagerf[],int size){
+	/* returns the id or -1 if the article doesnt exists */
+	int returnvalue;
+	for (int i = 0; i < size; ++i)
+	{
+			if(strcmp (lagerf[i].name,name) == 0){
+				returnvalue = i;
+				break;
+			}else
+			{returnvalue = -1;
+			}
+	}
+	return returnvalue;
+
+}
+
+int anzahlartikel(int id){
+	/*TODO*/
+}
+
+void clearstructin(struct Artikel lagerc[],int pos){
+	lagerc[pos].id = 0;
+	lagerc[pos].name[0] = '\0';
+	lagerc[pos].anzahl = 0;
+}
+
+int artikelindex(int id,struct Artikel lager[],int saturation){
+	int i;
+	for ( i = 0; i < saturation; ++i)
+	{
+		if(lager[i].id == id)
+		{
+			return i;
+		}
+	}
+}								
+
+void printlagertabelle(struct Artikel art){
+	printf("|  %*i|%*s|  %*i|\n",2,art.id,10,art.name,4,art.anzahl );
 }
 
 void printmenues(int menueid){
@@ -189,12 +282,13 @@ void printmenues(int menueid){
 	}
 }
 
-struct Artikel createartikel(int id,char *str){
-	struct Artikel newartikel;
-	newartikel.id = id;
-	strcpy(newartikel.name,str);
-	newartikel.anzahl = 0;
-	return newartikel;
+void clearscreen(){
+	struct winsize w;
+    ioctl(0, TIOCGWINSZ, &w);
+    for (int i = 0; i < w.ws_row; ++i)
+    {
+    	printf("\n");
+    }
 }
 
 int readoption(){
@@ -204,24 +298,31 @@ int readoption(){
 	return option;
 }
 
-void printlagertabelle(struct Artikel art){
-	printf("|  %*i|  %*s|  %*i|\n",2,art.id,8,art.name,4,art.anzahl );
-}
+int loadsaturation (){
+  FILE *fptr; //open a file buffer 
+	if ((fptr = fopen("./lagereigenschaften.txt","r")) == NULL){
+		printf("Error! opening file");
+		// Program exits if the file pointer returns NULL.
+		exit(1);
+		}
+  int i = 0;
 
-void read_lager_from_file(struct Artikel lager[],int size){
-  FILE *fptr; //open a file buffer
-  if ((fptr = fopen("./lager.bin","rb")) == NULL){
-    printf("Error! opening file");
-    // Program exits if the file pointer returns NULL.
-    exit(1);
-  }
-  struct Artikel newartikel;
-  if(fptr != NULL){
-    
-    fread(lager,sizeof(struct Artikel),size,fptr);
-    fclose(fptr);}
-  
+  fscanf (fptr, "%d", &i);    
+  fclose (fptr);   
+  return i;     
 }
+ 
+ void savesaturation(int sat){
+ 	FILE *fptr ; //open a file buffer
+	if ((fptr = fopen("./lagereigenschaften.txt","w+")) == NULL){
+		printf("Error! opening file");
+		// Program exits if the file pointer returns NULL.
+		exit(1);
+		}
+
+  fprintf (fptr, "%d", sat);    
+  fclose (fptr);   
+ }
 
 void write_lager_to_file(struct Artikel lagerw[],int size){
     FILE *fptr; //open a file buffer
@@ -237,33 +338,17 @@ void write_lager_to_file(struct Artikel lagerw[],int size){
   fclose(fptr);
 }
 
-int artikel_exists(char name[],struct Artikel lagere[],int size){
-	int returnvalue = 0;
-	for (int i = 0; i < size; ++i)
-	{
-		if(strcmp (lagere[i].name,name) == 0)
-			returnvalue = 1;
-	}
-	return returnvalue;
-}
-
-void clearstructin(struct Artikel lagerc[],int pos){
-	lagerc[pos].id = 0;
-	lagerc[pos].name[0] = '\0';
-	lagerc[pos].anzahl = 0;
-}
-
-int findeartikelid(char name[],struct Artikel lagerf[],int size){
-	int returnvalue;
-	for (int i = 0; i < size; ++i)
-	{
-			if(strcmp (lagerf[i].name,name) == 0){
-				returnvalue = i;
-				break;
-			}else
-			{returnvalue = -1;
-			}
-	}
-	return returnvalue;
-
+void read_lager_from_file(struct Artikel lager[],int size){
+  FILE *fptr; //open a file buffer
+  if ((fptr = fopen("./lager.bin","rb")) == NULL){
+    printf("Error! opening file");
+    // Program exits if the file pointer returns NULL.
+    exit(1);
+  }
+  struct Artikel newartikel;
+  if(fptr != NULL){
+    
+    fread(lager,sizeof(struct Artikel),size,fptr);
+    fclose(fptr);}
+  
 }
