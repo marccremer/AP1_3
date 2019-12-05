@@ -54,7 +54,7 @@ void artikelentnehmen(int id);
 int artikel_exists(char name[],struct Artikel lagere[],int size);
 int findeartikelid(char name[],struct Artikel lagerf[],int size);
 int anzahlartikel(int id);
-void printlagertabelle(struct Artikel *art);
+void printlagertabelle(struct Artikel art);
 void printmenues(int menueid);
 void clearscreen();
 int readoption();
@@ -63,7 +63,7 @@ int main(int argc, char const *argv[])
 {
 
 	const int lagergroese = 200; /* variable size requiers memory alloc */
-	struct Artikel lager[lagergroese] = {0};
+	struct Artikel lager[lagergroese] ;
 	int next_free_id = 0;
 	int saturation = 0;
 	int optionpicked;
@@ -74,6 +74,9 @@ int main(int argc, char const *argv[])
 	char lasterror[60] = "";
 
 	printf("Willkommen zum Lagersystem Cremer\n");
+	//load from file
+	read_lager_from_file(lager,lagergroese);
+
 	while (finished != 1){
 		//clearscreen();
 		printf("%s\n",lasterror );
@@ -92,7 +95,8 @@ int main(int argc, char const *argv[])
 					printf("|  id|      name|Anzahl|\n");				
 					for (int i = 0; i < saturation; ++i)
 						{
-							printlagertabelle(&lager[i]);
+							printlagertabelle(lager[i]);
+							printf("lager[%i] id:%i\n",i,lager[i].id );
 						}
 					break;
 				case 3:
@@ -200,8 +204,8 @@ int readoption(){
 	return option;
 }
 
-void printlagertabelle(struct Artikel *art){
-	printf("|  %*i|  %*s|  %*i|\n",2,art->id,8,art->name,4,art->anzahl );
+void printlagertabelle(struct Artikel art){
+	printf("|  %*i|  %*s|  %*i|\n",2,art.id,8,art.name,4,art.anzahl );
 }
 
 void read_lager_from_file(struct Artikel lager[],int size){
@@ -212,9 +216,6 @@ void read_lager_from_file(struct Artikel lager[],int size){
     exit(1);
   }
   struct Artikel newartikel;
-  int count = 0;
-
-
   if(fptr != NULL){
     
     fread(lager,sizeof(struct Artikel),size,fptr);
