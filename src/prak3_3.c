@@ -48,12 +48,14 @@ Marc Cremer 2019 */
 
 
 struct Artikel createartikel(int id,char *str) ;		//returns a Artikel struct with anzahl 0
-void artikelentnehmen(int id);							//reduces anzahl by 1 for Artikel with id "id"
-int artikel_exists(char name[],struct Artikel lagere[],int size);	//checks if the Artikel mit name "name" exists in "lagere"
+void artikelentnehmen(int pos,struct Artikel lager[],int anzahl);	//reduces anzahl by "anzahl" for Artikel at index pos
+int artikel_exists(char name[],struct Artikel lagere[],int size);	//checks if the Artikel mit name "name" exists in "lagere" returns 1 or 0
 int findeartikelid(char name[],struct Artikel lagerf[],int size);	// returns the id  of Artikel with "name" or -1 if the article doesnt exists 
-int anzahlartikel(int id);									//returns the anzahl of artikel mit id "id"
 void clearstructin(struct Artikel lagerc[],int pos);	//sets a struct in lager to 0 in each field
-int artikelindex(int id,struct Artikel lager[],int saturation); //returns the index of the Artikel with id "id"
+int index_by_id(int id,struct Artikel lager[],int saturation); //returns the index of the Artikel with id "id"
+int fuzzy_search(int modi,char name[],struct Artikel lager[],int saturation);
+/*searches the lager for either the artikel with the id "modi" or for the name "name" if the modi is -1
+  returns the index of the artikel or -1 if not found*/
 
 void printlagertabelle(struct Artikel art);					//print the lagertable formated
 void printmenues(int menueid);								//print a selection of menues
@@ -70,23 +72,28 @@ int main(int argc, char const *argv[])
 
 	const int lagergroese = 200; /* variable size requires memory alloc */
 	struct Artikel lager[lagergroese] ;
-	int saturation = loadsaturation();
+	int saturation;
 	int next_free_id = saturation-1;
 	int optionpicked;
 	int finished = 0;
 	char newname[10];
 	int newanzahl;
 	int newid;
+	int newindex;
 	int submenu = 0;
-	char lasterror[60] = "";
+	int searchresult;
+	char lastmsg[60] = "";
 	char spalteid[3] = "id";
 	char spalteArtikelname[12] = "Artikelname";
 	char spalteAnzahl[] = "Anzahl";
 
+	clearscreen();
 	printf("Willkommen zum Lagersystem Cremer\n");
 	//load from file
 	read_lager_from_file(lager,lagergroese);
 	//read staturation
+	saturation = loadsaturation();
+	//clear empty space
 	for (int i = saturation; i < lagergroese; ++i)
 	{
 		clearstructin(lager,i);
@@ -94,20 +101,20 @@ int main(int argc, char const *argv[])
 
 	while (finished != 1){
 		//clearscreen();
-		printf("%s\n",lasterror );
-		strcpy(lasterror,"");
+		printf("%s \n",lastmsg );
+		strcpy(lastmsg,"");
 		if (submenu == 0){
 			printmenues(1);
-			fflush(stdin);
-			scanf("%i",&optionpicked);
+			optionpicked = readoption();
 			switch(optionpicked){
 				case 1:
 					/*submenu Artikelverwaltung*/	
 					submenu = 1;
+					clearscreen();
 					break;
 				case 2:
-					/*Lager tabelle*/
-
+					/*Lager table*/
+					clearscreen();
 					printf("|%4s|%13s|%6s|\n",spalteid,spalteArtikelname,spalteAnzahl);				
 					for (int i = 0; i < saturation; ++i)
 						{
@@ -115,14 +122,14 @@ int main(int argc, char const *argv[])
 						}
 					break;
 				case 3:
-					/*Programm beenden*/
+					/*Programm closing und lager saving*/
 					write_lager_to_file(lager,lagergroese);
 					savesaturation(saturation);
-					printf("Auf Wiedersehen sat:%i\n",saturation);
+					printf("Auf Wiedersehen \n");
 					finished =1;
 					break;
 				default:
-					strcpy(lasterror,"->>>>>Tut mir leid das habe ich leider nicht verstanden\n");
+					strcpy(lastmsg,"->>>>>Tut mir leid das habe ich leider nicht verstanden\n");
 					break;
 				}
 		}else{
@@ -131,9 +138,36 @@ int main(int argc, char const *argv[])
 			printf("debub66\n");
 			switch(optionpicked){
 				case 1: //suchen
-					printf("Wie heist der Artikel den sie suchen:");
-					fflush(NULL);
-					scanf("%s",newname);
+					printf("Wollen sie anhand des Namens(0) oder anhand der ID suchen(1) (0-1):");
+					optionpicked = readoption();
+					switch(optionpicked){
+						case 0: //namen suchen
+							printf("Namen des Artikels bitte:");
+							scanf("%s",newname);
+							searchresult = fuzzy_search(-1,newname,lager,saturation);
+							if (searchresult == -1)
+							{
+								printf("Nichts gefunden\n");
+							}else{
+								clearscreen();
+								printf("Gefunden(\"%s\") mit ID:%i und anzahl:%i\n",lager[searchresult].name,lager[searchresult].id,lager[searchresult].anzahl );
+							}
+							break;
+						case 1:
+							printf("ID des Artikels bitte:");
+							newid = readoption();
+							searchresult = fuzzy_search(newid,lastmsg,lager,saturation); //just throw in some random string we dont use it anyway
+							if (searchresult == -1)
+							{
+								printf("Nichts gefunden\n");
+							}else{
+								clearscreen();
+								printf("Gefunden(\"%s\") mit ID:%i und anzahl:%i\n",lager[searchresult].name,lager[searchresult].id,lager[searchresult].anzahl );
+							}
+							break;
+						default:
+							break;
+					}
 					break;
 				case 2: //entnehmen
 					printf("Name des Artikels?:");
@@ -144,14 +178,12 @@ int main(int argc, char const *argv[])
 					fflush(NULL);
 					scanf("%i",&newanzahl);
 					newid = findeartikelid(newname,lager,saturation);
+
 					if (newid < 0)
 					{
 						printf("Dieser Artikel existiert leider nicht\n" );
 					}else{
-						if (lager[ artikelindex(newid,lager,saturation) ].anzahl == 0 )
-						{
-							printf("0 artikel take\n");
-						}
+						artikelentnehmen(index_by_id(newid,lager,saturation),lager,newanzahl);
 					}
 					break;
 				case 3:
@@ -183,14 +215,14 @@ int main(int argc, char const *argv[])
 					}
 					break;
 				case 4:
-					submenu = 0;
+					submenu = 0; //Hauptmenü
+					clearscreen();
 					break;
 				default:
-					strcpy(lasterror,"->>>>>Tut mir leid das habe ich leider nicht verstanden\n");
+					strcpy(lastmsg,"->>>>>Tut mir leid das habe ich leider nicht verstanden:\n");
 					break;
 			}
-		}
-		
+		}	
 	}
 	return 0;
 }
@@ -203,8 +235,14 @@ struct Artikel createartikel(int id,char *str){
 	return newartikel;
 }
 
-void artikelentnehmen(int id){
-	/*TODO */
+void artikelentnehmen(int pos,struct Artikel lager[],int anzahl){
+		if ( (lager[pos].anzahl - anzahl) >= 0 )
+		{
+			lager[pos].anzahl-=anzahl;
+			printf("%i Stück aus dem Lager entnommen.\nNoch %i im Lager\n",anzahl,(lager[pos].anzahl) );
+		}else{
+			printf("Leider nicht genug im Lager\nVorgang abgebrochen\n");
+		}
 }
 
 int artikel_exists(char name[],struct Artikel lagere[],int size){
@@ -233,17 +271,13 @@ int findeartikelid(char name[],struct Artikel lagerf[],int size){
 
 }
 
-int anzahlartikel(int id){
-	/*TODO*/
-}
-
 void clearstructin(struct Artikel lagerc[],int pos){
 	lagerc[pos].id = 0;
 	lagerc[pos].name[0] = '\0';
 	lagerc[pos].anzahl = 0;
 }
 
-int artikelindex(int id,struct Artikel lager[],int saturation){
+int index_by_id(int id,struct Artikel lager[],int saturation){
 	int i;
 	for ( i = 0; i < saturation; ++i)
 	{
@@ -252,7 +286,34 @@ int artikelindex(int id,struct Artikel lager[],int saturation){
 			return i;
 		}
 	}
-}								
+}	
+
+int fuzzy_search(int modi,char name[],struct Artikel lager[],int saturation){
+	int returnvalue = -1;
+	if (modi == -1)
+	{
+		for (int i = 0; i < saturation+1; ++i)
+		{
+			for(int j=0; lager[i].name[j] != '\0'; ++j){
+				if ( lager[i].name[j] != name[j] || lager[i].name[j] != (name[j]+32) ) //checks for lower and uppercase with ASCI values
+				{
+					returnvalue = i;
+				}else{
+					++i; //word doesnt match in position j ,move on
+				}
+			}	
+		}
+	}else{
+		for (int i = 0; i < saturation+1; ++i)
+		{
+			if (lager[i].id == modi)
+			{
+				returnvalue = i;
+			}
+		}
+	}
+	return returnvalue;
+}							
 
 void printlagertabelle(struct Artikel art){
 	printf("|  %*i|%*s|  %*i|\n",2,art.id,10,art.name,4,art.anzahl );
@@ -292,9 +353,13 @@ void clearscreen(){
 }
 
 int readoption(){
-	int option;
-	fflush(stdin);
-	scanf("%i",&option);
+	int option =0;
+	fflush(NULL);
+	if(scanf(" %i",&option) == 0){
+		option = 10;
+	}
+	while (getchar() != '\n');
+	// discard any extra (unexpected) character 
 	return option;
 }
 
