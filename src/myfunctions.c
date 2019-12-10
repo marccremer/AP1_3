@@ -1,4 +1,6 @@
 /*myfunctions.c */
+#include "myfunctions.h"
+
 int sucheZeichen(const char str[], char c){
 	//int length = strlen(str);
 	int foundchars = 0;
