@@ -1,47 +1,26 @@
-/* Aufgabe 1: Programmieren in C
-▪ Schreiben Sie eine Funktion int sucheZeichen(const char s[], char c), wobei der
-Rückgabewert der Häufigkeit des Characters c im Char-Array s entspricht.
-▪ Schreiben Sie eine Funktion int laengeZeichenkette(const char s[]), die die Anzahl
-der Zeichen (die Länge der Zeichenkette) als Rückgabewert liefert.
-▪ Schreiben Sie dann ein Hauptprogramm, das eine kleine Menüsteuerung enthält, um nach
-einem Buchstaben in einem Namen zu suchen.
-Der Ablauf soll dann so aussehen:
-Bitte Namen eingeben: Isabella
-Isabella hat 8 Zeichen.
-Möchtest Du nach einem Buchstaben in Isabella suchen (j / n)? j
-Bitte Buchstaben eingeben: a
-Der Buchstabe a kommt 2-mal vor.
-Möchtest Du nach einem Buchstaben in Isabella suchen (j / n)? j
-Bitte Buchstaben eingeben: k
-Der Buchstabe k kommt 0-mal vor.
-Möchtest Du nach einem Buchstaben in Isabella suchen (j / n)? n
-Auf Wiedersehen!
-Hinweise:
-▪ Verwenden Sie aus Übungsgründen im Menü die switch Anweisung, die in den Case
-Labels die Character j und n auswertet.
-▪ Verwenden Sie fflush(stdin) aus der Bibliothek <stdio.h> , um Probleme mit dem
-Tastaturpuffer bei der Eingabe zu */
+/* Marc Cremer 2019
+Nimmt einen String und einen Char und gibt die Haeufigkeit
+des Chars's im String aus */
 
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
+#include <stdio.h> //printf,scanf,fflush
 
 int sucheZeichen(const char str[], char c);
-int laengeZeichenkette(const char str[]);
+int laengeZeichenkette(const char str[]); //wird nicht benutz wurde aber verlangt
 
 int main(int argc, char const *argv[])
 {
-	char name[40];
-	char csuche;
+	char name[40];			//der string der durchsucht wird
+	char csuche; 			//der gesuchte char
+	char answer;			//menuesteuerung
+	int notfinished = 0;	//menuesteuerung
+
 	printf("Bitte Namen eingeben:");
 	scanf("%s",name);
 	printf("\n");
-	char answer;
-	int notfinished = 0;
-	int runs = 0;
+
 	while(notfinished == 0){
-		printf("Möchtest Du nach einem Buchstaben in \"%s\" suchen (j / n)?:\0",name);
-		fflush(NULL);
+		printf("Möchtest Du nach einem Buchstaben in \"%s\" suchen (j / n)?:\0",name); // das \0 schneidet die newline ab
+		fflush(NULL);//buffer clear
 		scanf(" %c",&answer);
 		fflush(NULL);
 		printf("\n");
@@ -56,7 +35,7 @@ int main(int argc, char const *argv[])
 				printf("Auf Wiedersehen!\n");
 				notfinished = 1;
 				break;
-			default :
+			default : //falls etwas unerwartetes eingegeben wurde
 			printf("Entschuldigung das habe ich nicht versttanden\n");
 			break;
 		}
@@ -65,6 +44,7 @@ return 0;
 }
 
 int sucheZeichen(const char str[], char c){
+	//iteriert ueber den charrarray str bis zu einem 0-byte und zaelt Haufigkeit von c
 	int foundchars = 0;
 	for(int i=0; str[i] != '\0'; i++){
 		if (str[i] == c )
@@ -76,6 +56,7 @@ int sucheZeichen(const char str[], char c){
 }
 
 int laengeZeichenkette(const char str[]){
+	//iteriert ueber den charrarray str bis zu einem 0-byte und gibt die array laenge aus
 	int length = 0 ;
 	for(int i=0; str[i] != '\0'; i++){
 		length += 1;
