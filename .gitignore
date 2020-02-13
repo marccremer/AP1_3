@@ -1,3 +1,5 @@
 *.pdf
 *.sublime-workspace
 bin/*
+*.sublime-project
+
