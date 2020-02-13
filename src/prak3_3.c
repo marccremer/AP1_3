@@ -1,34 +1,8 @@
 /*prak3_3.c
-Schreiben Sie ein Programm zur Lagerverwaltung. Wir wollen hierzu ein struct verwenden,
-das die folgenden Komponenten hat:
-char artikel[laengeArtikel];
-int anzahl;
-Das Array lager[anzahlEintraege] enthält dann als Array-Elemente die Informationen zu
-Artikeln gemäß der obigen Struktur.
-Folgende Funktionen sollen geschrieben werden:
-▪ Artikel hinzufügen.
-Ein Artikel mit Anzahl soll in die Lagerliste eingetragen werden, falls noch Platz ist
-und falls der Artikel noch nicht existiert. Falls der Artikel bereits vorhanden ist, soll
-die Anzahl entsprechend erhöht werden.
-▪ Artikel entnehmen.
-Geben Sie einen Artikel ein und geben Sie an, wie viele Exemplare aus dem Lager
-entnommen werden. Aktualisieren Sie die Anzahl. Beachten Sie den Fall, dass der
-Artikel nicht existiert, und den Fall, wo nicht genügend Exemplare auf Lager sind.
-Erzeugen Sie dann entsprechende Meldungen für den Anwender.
-▪ Eintrag suchen.
-Für einen Artikel soll ausgegeben werden, welche Anzahl noch im Lager ist.
-Formulieren Sie auch hier alle möglichen Meldungen an den Anwender.
-▪ Lager als Tabelle ausgeben.
-Hier soll eine Tabelle mit den Spalten Artikel und Anzahl ausgegeben werden. Am
-Ende der Tabelle sollen die Anzahlen addiert werden, damit man weiß, wie viele
-Artikel insgesamt im Lager sind.
-▪ Schreiben Sie eine Menüsteuerung, durch die sich die einzelnen Funktionen aufrufen
-lassen.
-Hinweise:
-▪ Sie werden in der Aufgabe Zeichenketten vergleichen müssen. Verwenden Sie hierzu
-die Bibliotheksfunktion int strcmp(const char *s1, const char *s2) .
-▪ Schreiben Sie alle Funktionen in das main -Programm. Sie sollen für dieses Beispiel
-kein make und keine separate Übersetzung verwenden.
+Ein Lagerverwaltungsprogramm.
+Artikel werden mit ID,NAME und ANZAHL abgepeichert.
+Zum Programm gehoeren auch lagereigenschaften.txt und lager.bin.
+Wenn nicht vorhanden muessen vom user erstellt werden
 Marc Cremer 2019 */
 
 #include <stdlib.h>		//exit()
@@ -375,7 +349,7 @@ int readoption(){
 int loadsaturation (){
   FILE *fptr; //open a file buffer 
 	if ((fptr = fopen("./lagereigenschaften.txt","r")) == NULL){
-		printf("Error! opening file:lagereigenschaften.txt");
+		printf("Error! opening file:lagereigenschaften.txt\0");
 		// Program exits if the file pointer returns NULL.
 		exit(1);
 		}
@@ -389,7 +363,7 @@ int loadsaturation (){
  void savesaturation(int sat){
  	FILE *fptr ; //open a file buffer
 	if ((fptr = fopen("./lagereigenschaften.txt","w+")) == NULL){
-		printf("Error! opening file:lagereigenschaften.txt");
+		printf("Error! opening file:lagereigenschaften.txt\0");
 		// Program exits if the file pointer returns NULL.
 		exit(1);
 		}
@@ -416,7 +390,7 @@ void write_lager_to_file(struct Artikel lagerw[],int size){
     FILE *fptr; //open a file buffer
     int n;
     if ((fptr = fopen("./lager.bin","wb")) == NULL){
-    printf("Error! opening file:lager.bin");
+    printf("Error! opening file:lager.bin\0");
     // Program exits if the file pointer returns NULL.
     exit(1);
   }
@@ -429,7 +403,7 @@ void write_lager_to_file(struct Artikel lagerw[],int size){
 void read_lager_from_file(struct Artikel lager[],int size){
   FILE *fptr; //open a file buffer
   if ((fptr = fopen("./lager.bin","rb")) == NULL){
-    printf("Error! opening file:lager.bin");
+    printf("Error! opening file:lager.bin\0");
     // Program exits if the file pointer returns NULL.
     exit(1);
   }
